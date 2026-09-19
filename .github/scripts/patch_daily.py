@@ -32,8 +32,6 @@ helper = '''    private fun getDynamicDailyDirectory(root: DocumentFile, create:
         )
         val month = today.monthValue.toString().padStart(2, '0')
         val monthFolder = "$month ${chineseMonths[today.monthValue - 1]}"
-        // Keep the whole vault selected so the widget can read both Journal notes
-        // and .obsidian/plugins/reading-year-pixels/data.json.
         val base = dailyFolder.trim().trim('/').ifBlank { "01 Journal" }
         val path = "$base/${today.year}年/$monthFolder"
         return if (create) {
@@ -49,7 +47,6 @@ if marker not in s:
 s = s.replace(marker, helper + marker, 1)
 path.write_text(s, encoding='utf-8')
 
-# Show the correct Journal path in configuration when a new widget has no saved folder.
 config = Path('app/src/main/java/com/obsidianwidget/WidgetConfigActivity.kt')
 c = config.read_text(encoding='utf-8')
 old_config = '        dailyFolderInput.setText(vaultManager.dailyFolder)'
@@ -59,7 +56,6 @@ if old_config not in c:
 c = c.replace(old_config, new_config, 1)
 config.write_text(c, encoding='utf-8')
 
-# Make tapping the header open the same nested daily note path.
 provider = Path('app/src/main/java/com/obsidianwidget/ObsidianWidgetProvider.kt')
 p = provider.read_text(encoding='utf-8')
 old_provider = '''        val base = vaultManager.dailyFolder.trim().trim('/')
@@ -77,6 +73,6 @@ provider.write_text(p, encoding='utf-8')
 
 gradle = Path('app/build.gradle.kts')
 g = gradle.read_text(encoding='utf-8')
-g = g.replace('applicationId = "com.obsidianwidget"', 'applicationId = "com.flo.obsidiantodaywidget22"')
-g = g.replace('versionName = "1.0"', 'versionName = "2.2-today"')
+g = g.replace('applicationId = "com.obsidianwidget"', 'applicationId = "com.flo.obsidiantodaywidget23"')
+g = g.replace('versionName = "1.0"', 'versionName = "2.3-today"')
 gradle.write_text(g, encoding='utf-8')
