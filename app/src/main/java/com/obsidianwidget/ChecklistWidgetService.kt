@@ -77,7 +77,9 @@ class ChecklistRemoteViewsFactory(
     override fun onDataSetChanged() {
         val vaultManager = VaultManager(context, widgetId)
         items = vaultManager.parseChecklist().filter { item ->
-            !item.isHeading && (!item.isPlainText || item.isBullet)
+            !item.isHeading &&
+                (!item.isPlainText || item.isBullet) &&
+                (item.isPlainText || !item.isChecked)
         }
         tapCheckboxOnly = vaultManager.tapCheckboxOnly
     }
@@ -100,10 +102,10 @@ class ChecklistRemoteViewsFactory(
             val indentPx = (item.indentLevel * 16 * density).toInt()
             views.setViewPadding(
                 R.id.text_item_root,
-                indentPx + (18 * density).toInt(),
-                (10 * density).toInt(),
-                (16 * density).toInt(),
-                (10 * density).toInt()
+                indentPx + (14 * density).toInt(),
+                (3 * density).toInt(),
+                (12 * density).toInt(),
+                (3 * density).toInt()
             )
             val url = extractFirstUrl(item.text)
             if (url != null) {
@@ -121,14 +123,12 @@ class ChecklistRemoteViewsFactory(
         val indentPx = (item.indentLevel * 16 * density).toInt()
         views.setViewPadding(
             R.id.checklist_item_root,
-            indentPx + (18 * density).toInt(),
-            (10 * density).toInt(),
-            (16 * density).toInt(),
-            (10 * density).toInt()
+            indentPx + (14 * density).toInt(),
+            (3 * density).toInt(),
+            (12 * density).toInt(),
+            (3 * density).toInt()
         )
 
-        // The Dawn-style widget uses a clean agenda bullet instead of a visible checkbox.
-        // Tapping the row still toggles the underlying Obsidian checkbox.
         views.setViewVisibility(R.id.checklist_checkbox_mark, android.view.View.GONE)
         views.setTextViewText(R.id.checklist_text, markdownToHtml("•  ${item.text}"))
         if (item.isChecked) {
@@ -147,12 +147,7 @@ class ChecklistRemoteViewsFactory(
             putExtra(ObsidianWidgetProvider.EXTRA_LINE_INDEX, item.lineIndex)
             putExtra(ObsidianWidgetProvider.EXTRA_WIDGET_ID, widgetId)
         }
-        if (tapCheckboxOnly) {
-            // There is no visible checkbox in this visual style, so keep the full row tappable.
-            views.setOnClickFillInIntent(R.id.checklist_item_root, fillIntent)
-        } else {
-            views.setOnClickFillInIntent(R.id.checklist_item_root, fillIntent)
-        }
+        views.setOnClickFillInIntent(R.id.checklist_item_root, fillIntent)
 
         return views
     }
