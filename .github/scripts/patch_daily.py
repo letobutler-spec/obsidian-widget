@@ -77,6 +77,6 @@ provider.write_text(p, encoding='utf-8')
 
 gradle = Path('app/build.gradle.kts')
 g = gradle.read_text(encoding='utf-8')
-g = g.replace('applicationId = "com.obsidianwidget"', 'applicationId = "com.flo.obsidiantodaywidget"')
+g = g.replace('applicationId = "com.obsidianwidget"', 'applicationId = "com.flo.obsidiantodaywidget22"')
 g = g.replace('versionName = "1.0"', 'versionName = "2.2-today"')
 gradle.write_text(g, encoding='utf-8')
