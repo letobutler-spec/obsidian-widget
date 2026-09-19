@@ -29,9 +29,7 @@ jobs:
         uses: gradle/actions/setup-gradle@v4
 
       - name: Build APK
-        run: |
-          chmod +x gradlew
-          ./gradlew assembleDebug
+        run: gradle assembleDebug
 
       - name: Prepare APK
         run: cp app/build/outputs/apk/debug/app-debug.apk Obsidian-Daily-Widget-Flo.apk
