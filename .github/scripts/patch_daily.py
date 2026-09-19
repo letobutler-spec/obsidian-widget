@@ -32,12 +32,11 @@ helper = '''    private fun getDynamicDailyDirectory(root: DocumentFile, create:
         )
         val month = today.monthValue.toString().padStart(2, '0')
         val monthFolder = "$month ${chineseMonths[today.monthValue - 1]}"
-        val base = dailyFolder.trim().trim('/')
-        val path = if (base.isBlank()) {
-            "${today.year}年/$monthFolder"
-        } else {
-            "$base/${today.year}年/$monthFolder"
-        }
+        // The vault root must stay selected so the widget can also reach
+        // .obsidian/plugins/reading-year-pixels/data.json. If the folder field is
+        // blank, default to Flo's Journal folder automatically.
+        val base = dailyFolder.trim().trim('/').ifBlank { "01 Journal" }
+        val path = "$base/${today.year}年/$monthFolder"
         return if (create) {
             findOrCreateSubDirectory(root, path)
         } else {
@@ -54,5 +53,5 @@ path.write_text(s, encoding='utf-8')
 gradle = Path('app/build.gradle.kts')
 g = gradle.read_text(encoding='utf-8')
 g = g.replace('applicationId = "com.obsidianwidget"', 'applicationId = "com.flo.obsidiantodaywidget"')
-g = g.replace('versionName = "1.0"', 'versionName = "2.1-today"')
+g = g.replace('versionName = "1.0"', 'versionName = "2.2-today"')
 gradle.write_text(g, encoding='utf-8')
