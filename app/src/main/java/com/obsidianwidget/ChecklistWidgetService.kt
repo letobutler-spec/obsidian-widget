@@ -23,11 +23,11 @@ class ChecklistRemoteViewsFactory(
 
     private var items = listOf<VaultManager.ChecklistItem>()
     private var tapCheckboxOnly = false
-    private var themeColors = VaultManager.ThemeColors(
-        bg = 0xFF1A1A1E.toInt(),
-        text = 0xFFE8E6E3.toInt(),
-        textSecondary = 0xFF8B8B8F.toInt(),
-        accent = 0xFFD97757.toInt(),
+    private val todayColors = VaultManager.ThemeColors(
+        bg = 0x00FFFFFF,
+        text = 0xFF111111.toInt(),
+        textSecondary = 0xFF777777.toInt(),
+        accent = 0xFF5AA9A4.toInt(),
         buttonText = 0xFFFFFFFF.toInt()
     )
 
@@ -52,6 +52,7 @@ class ChecklistRemoteViewsFactory(
             }
             return null
         }
+
         fun markdownToHtml(text: String): CharSequence {
             var html = text
                 .replace("&", "&amp;")
@@ -75,9 +76,10 @@ class ChecklistRemoteViewsFactory(
 
     override fun onDataSetChanged() {
         val vaultManager = VaultManager(context, widgetId)
-        items = vaultManager.parseChecklist()
+        items = vaultManager.parseChecklist().filter { item ->
+            !item.isHeading && (!item.isPlainText || item.isBullet)
+        }
         tapCheckboxOnly = vaultManager.tapCheckboxOnly
-        themeColors = vaultManager.getThemeColors()
     }
 
     override fun onDestroy() {
@@ -89,29 +91,20 @@ class ChecklistRemoteViewsFactory(
     override fun getViewAt(position: Int): RemoteViews {
         val item = items[position]
 
-        if (item.isHeading) {
-            val views = RemoteViews(context.packageName, R.layout.widget_heading_item)
-            views.setTextViewText(R.id.heading_item_content, markdownToHtml(item.text))
-            views.setTextColor(R.id.heading_item_content, themeColors.text)
-            val url = extractFirstUrl(item.text)
-            if (url != null) {
-                views.setOnClickFillInIntent(R.id.heading_item_root, Intent().apply {
-                    putExtra(ObsidianWidgetProvider.EXTRA_URL, url)
-                })
-            } else {
-                views.setOnClickFillInIntent(R.id.heading_item_root, Intent())
-            }
-            return views
-        }
-
         if (item.isPlainText) {
             val views = RemoteViews(context.packageName, R.layout.widget_text_item)
             val displayText = if (item.isBullet) "•  ${item.text}" else item.text
             views.setTextViewText(R.id.text_item_content, markdownToHtml(displayText))
-            views.setTextColor(R.id.text_item_content, themeColors.text)
+            views.setTextColor(R.id.text_item_content, todayColors.text)
             val density = context.resources.displayMetrics.density
             val indentPx = (item.indentLevel * 16 * density).toInt()
-            views.setViewPadding(R.id.text_item_root, indentPx + (4 * density).toInt(), (4 * density).toInt(), (4 * density).toInt(), (4 * density).toInt())
+            views.setViewPadding(
+                R.id.text_item_root,
+                indentPx + (18 * density).toInt(),
+                (10 * density).toInt(),
+                (16 * density).toInt(),
+                (10 * density).toInt()
+            )
             val url = extractFirstUrl(item.text)
             if (url != null) {
                 views.setOnClickFillInIntent(R.id.text_item_root, Intent().apply {
@@ -124,49 +117,39 @@ class ChecklistRemoteViewsFactory(
         }
 
         val views = RemoteViews(context.packageName, R.layout.widget_checklist_item)
-
-        // Always set padding (reset for non-indented, indent for nested)
         val density = context.resources.displayMetrics.density
         val indentPx = (item.indentLevel * 16 * density).toInt()
-        views.setViewPadding(R.id.checklist_item_root, indentPx + (4 * density).toInt(), (6 * density).toInt(), (4 * density).toInt(), (6 * density).toInt())
+        views.setViewPadding(
+            R.id.checklist_item_root,
+            indentPx + (18 * density).toInt(),
+            (10 * density).toInt(),
+            (16 * density).toInt(),
+            (10 * density).toInt()
+        )
 
-        // Set checkbox: circle bg tinted to accent/secondary, white checkmark overlay
+        // The Dawn-style widget uses a clean agenda bullet instead of a visible checkbox.
+        // Tapping the row still toggles the underlying Obsidian checkbox.
+        views.setViewVisibility(R.id.checklist_checkbox_mark, android.view.View.GONE)
+        views.setTextViewText(R.id.checklist_text, markdownToHtml("•  ${item.text}"))
         if (item.isChecked) {
-            views.setImageViewResource(R.id.checklist_checkbox_bg, R.drawable.ic_checkbox_checked)
-            views.setInt(R.id.checklist_checkbox_bg, "setColorFilter", themeColors.accent)
-            views.setViewVisibility(R.id.checklist_checkbox_mark, android.view.View.VISIBLE)
-        } else {
-            views.setImageViewResource(R.id.checklist_checkbox_bg, R.drawable.ic_checkbox_unchecked)
-            views.setInt(R.id.checklist_checkbox_bg, "setColorFilter", themeColors.textSecondary)
-            views.setViewVisibility(R.id.checklist_checkbox_mark, android.view.View.GONE)
-        }
-
-        // Set text with strikethrough if checked
-        views.setTextViewText(R.id.checklist_text, markdownToHtml(item.text))
-        if (item.isChecked) {
-            views.setInt(R.id.checklist_text, "setPaintFlags",
-                Paint.STRIKE_THRU_TEXT_FLAG or Paint.ANTI_ALIAS_FLAG)
-            views.setTextColor(R.id.checklist_text, themeColors.textSecondary)
+            views.setInt(
+                R.id.checklist_text,
+                "setPaintFlags",
+                Paint.STRIKE_THRU_TEXT_FLAG or Paint.ANTI_ALIAS_FLAG
+            )
+            views.setTextColor(R.id.checklist_text, todayColors.textSecondary)
         } else {
             views.setInt(R.id.checklist_text, "setPaintFlags", Paint.ANTI_ALIAS_FLAG)
-            views.setTextColor(R.id.checklist_text, themeColors.text)
+            views.setTextColor(R.id.checklist_text, todayColors.text)
         }
 
-        // Fill-in intent for toggling this item
         val fillIntent = Intent().apply {
             putExtra(ObsidianWidgetProvider.EXTRA_LINE_INDEX, item.lineIndex)
             putExtra(ObsidianWidgetProvider.EXTRA_WIDGET_ID, widgetId)
         }
         if (tapCheckboxOnly) {
-            views.setOnClickFillInIntent(R.id.checklist_checkbox, fillIntent)
-            val url = extractFirstUrl(item.text)
-            if (url != null) {
-                views.setOnClickFillInIntent(R.id.checklist_item_root, Intent().apply {
-                    putExtra(ObsidianWidgetProvider.EXTRA_URL, url)
-                })
-            } else {
-                views.setOnClickFillInIntent(R.id.checklist_item_root, Intent())
-            }
+            // There is no visible checkbox in this visual style, so keep the full row tappable.
+            views.setOnClickFillInIntent(R.id.checklist_item_root, fillIntent)
         } else {
             views.setOnClickFillInIntent(R.id.checklist_item_root, fillIntent)
         }
@@ -175,7 +158,7 @@ class ChecklistRemoteViewsFactory(
     }
 
     override fun getLoadingView(): RemoteViews? = null
-    override fun getViewTypeCount(): Int = 3
+    override fun getViewTypeCount(): Int = 2
     override fun getItemId(position: Int): Long = items[position].lineIndex.toLong()
     override fun hasStableIds(): Boolean = true
 }
