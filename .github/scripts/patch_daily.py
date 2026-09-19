@@ -69,10 +69,61 @@ new_provider = '''        val base = vaultManager.dailyFolder.trim().trim('/').i
 if old_provider not in p:
     raise SystemExit('Could not find dynamic daily-note path block')
 p = p.replace(old_provider, new_provider, 1)
+
+# v2.5: keep the Book reminder band visible even when there is no book entry today.
+old_book_empty = '''        } else {
+            views.setViewVisibility(R.id.widget_book_pixel, View.GONE)
+        }
+
+        if (!pixels.bentoText.isNullOrBlank()) {'''
+new_book_empty = '''        } else {
+            views.setTextViewText(R.id.widget_book_pixel, "\u00A0")
+            views.setViewVisibility(R.id.widget_book_pixel, View.VISIBLE)
+            tintBand(
+                views,
+                R.id.widget_book_pixel,
+                PixelDataReader.translucent(null, Color.rgb(167, 218, 213), 82)
+            )
+            views.setOnClickPendingIntent(
+                R.id.widget_book_pixel,
+                createActionIntent(context, ACTION_OPEN, appWidgetId)
+            )
+        }
+
+        if (!pixels.bentoText.isNullOrBlank()) {'''
+if old_book_empty not in p:
+    raise SystemExit('Could not find empty Book row block')
+p = p.replace(old_book_empty, new_book_empty, 1)
+
+# v2.5: keep the Bento reminder band visible even when there is no meal entry today.
+old_bento_empty = '''        } else {
+            views.setViewVisibility(R.id.widget_bento_pixel, View.GONE)
+        }
+
+        if (hasAgenda) {'''
+new_bento_empty = '''        } else {
+            views.setTextViewText(R.id.widget_bento_pixel, "\u00A0")
+            views.setViewVisibility(R.id.widget_bento_pixel, View.VISIBLE)
+            tintBand(
+                views,
+                R.id.widget_bento_pixel,
+                PixelDataReader.translucent(null, Color.rgb(167, 184, 230), 92)
+            )
+            views.setOnClickPendingIntent(
+                R.id.widget_bento_pixel,
+                createActionIntent(context, ACTION_OPEN, appWidgetId)
+            )
+        }
+
+        if (hasAgenda) {'''
+if old_bento_empty not in p:
+    raise SystemExit('Could not find empty Bento row block')
+p = p.replace(old_bento_empty, new_bento_empty, 1)
+
 provider.write_text(p, encoding='utf-8')
 
 gradle = Path('app/build.gradle.kts')
 g = gradle.read_text(encoding='utf-8')
-g = g.replace('applicationId = "com.obsidianwidget"', 'applicationId = "com.flo.obsidiantodaywidget24"')
-g = g.replace('versionName = "1.0"', 'versionName = "2.4-fast"')
+g = g.replace('applicationId = "com.obsidianwidget"', 'applicationId = "com.flo.obsidiantodaywidget25"')
+g = g.replace('versionName = "1.0"', 'versionName = "2.5-empty-rows"')
 gradle.write_text(g, encoding='utf-8')
