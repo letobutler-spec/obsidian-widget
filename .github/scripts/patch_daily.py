@@ -32,9 +32,8 @@ helper = '''    private fun getDynamicDailyDirectory(root: DocumentFile, create:
         )
         val month = today.monthValue.toString().padStart(2, '0')
         val monthFolder = "$month ${chineseMonths[today.monthValue - 1]}"
-        // The vault root must stay selected so the widget can also reach
-        // .obsidian/plugins/reading-year-pixels/data.json. If the folder field is
-        // blank, default to Flo's Journal folder automatically.
+        // Keep the whole vault selected so the widget can read both Journal notes
+        // and .obsidian/plugins/reading-year-pixels/data.json.
         val base = dailyFolder.trim().trim('/').ifBlank { "01 Journal" }
         val path = "$base/${today.year}年/$monthFolder"
         return if (create) {
@@ -49,6 +48,32 @@ if marker not in s:
     raise SystemExit('Could not find directory helper insertion point')
 s = s.replace(marker, helper + marker, 1)
 path.write_text(s, encoding='utf-8')
+
+# Show the correct Journal path in configuration when a new widget has no saved folder.
+config = Path('app/src/main/java/com/obsidianwidget/WidgetConfigActivity.kt')
+c = config.read_text(encoding='utf-8')
+old_config = '        dailyFolderInput.setText(vaultManager.dailyFolder)'
+new_config = '        dailyFolderInput.setText(vaultManager.dailyFolder.ifBlank { "01 Journal" })'
+if old_config not in c:
+    raise SystemExit('Could not find daily-folder config line')
+c = c.replace(old_config, new_config, 1)
+config.write_text(c, encoding='utf-8')
+
+# Make tapping the header open the same nested daily note path.
+provider = Path('app/src/main/java/com/obsidianwidget/ObsidianWidgetProvider.kt')
+p = provider.read_text(encoding='utf-8')
+old_provider = '''        val base = vaultManager.dailyFolder.trim().trim('/')
+        return if (base.isBlank()) {
+            "${today.year}年/$monthFolder/$date"
+        } else {
+            "$base/${today.year}年/$monthFolder/$date"
+        }'''
+new_provider = '''        val base = vaultManager.dailyFolder.trim().trim('/').ifBlank { "01 Journal" }
+        return "$base/${today.year}年/$monthFolder/$date"'''
+if old_provider not in p:
+    raise SystemExit('Could not find dynamic daily-note path block')
+p = p.replace(old_provider, new_provider, 1)
+provider.write_text(p, encoding='utf-8')
 
 gradle = Path('app/build.gradle.kts')
 g = gradle.read_text(encoding='utf-8')
