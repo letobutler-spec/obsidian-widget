@@ -3,31 +3,30 @@
     android:id="@+id/checklist_item_root"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
+    android:minHeight="54dp"
     android:orientation="horizontal"
     android:gravity="center_vertical"
-    android:paddingStart="4dp"
-    android:paddingEnd="4dp"
-    android:paddingTop="6dp"
-    android:paddingBottom="6dp">
+    android:paddingStart="18dp"
+    android:paddingEnd="16dp"
+    android:paddingTop="10dp"
+    android:paddingBottom="10dp">
 
     <FrameLayout
         android:id="@+id/checklist_checkbox"
-        android:layout_width="20dp"
-        android:layout_height="20dp"
-        android:layout_marginEnd="12dp">
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginEnd="0dp">
 
         <ImageView
             android:id="@+id/checklist_checkbox_bg"
-            android:layout_width="20dp"
-            android:layout_height="20dp"
-            android:contentDescription="Toggle"
-            android:src="@drawable/ic_checkbox_unchecked" />
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:contentDescription="Toggle" />
 
         <ImageView
             android:id="@+id/checklist_checkbox_mark"
-            android:layout_width="20dp"
-            android:layout_height="20dp"
-            android:src="@drawable/ic_checkmark"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
             android:visibility="gone" />
     </FrameLayout>
 
@@ -36,11 +35,12 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_weight="1"
-        android:textColor="@color/obsidian_text"
-        android:textSize="14sp"
-        android:fontFamily="sans-serif"
-        android:lineSpacingExtra="2dp"
+        android:ellipsize="end"
+        android:fontFamily="sans-serif-medium"
+        android:lineSpacingExtra="3dp"
         android:maxLines="2"
-        android:ellipsize="end" />
+        android:textColor="#FF111111"
+        android:textSize="16sp"
+        android:textStyle="bold" />
 
 </LinearLayout>
