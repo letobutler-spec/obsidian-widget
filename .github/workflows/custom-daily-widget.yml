@@ -25,10 +25,10 @@ jobs:
       - name: Apply custom daily-note patch
         run: python3 .github/scripts/patch_daily.py
 
-      - name: Set up Gradle 9.5
+      - name: Set up Gradle 8.13
         uses: gradle/actions/setup-gradle@v4
         with:
-          gradle-version: '9.5'
+          gradle-version: '8.13'
 
       - name: Build APK
         run: gradle assembleDebug
