@@ -29,6 +29,7 @@ class FastRefreshReceiver : android.content.BroadcastReceiver() {
                     cancel(context)
                 }
             }
+            AppWidgetManager.ACTION_APPWIDGET_UPDATE,
             Intent.ACTION_BOOT_COMPLETED,
             Intent.ACTION_MY_PACKAGE_REPLACED -> {
                 if (hasWidgets(context)) schedule(context)
