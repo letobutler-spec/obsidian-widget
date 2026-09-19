@@ -125,21 +125,23 @@ class ObsidianWidgetProvider : AppWidgetProvider() {
         views.setTextColor(R.id.widget_date, Color.rgb(17, 17, 17))
 
         val allItems = vaultManager.parseChecklist()
-        val agendaItems = allItems.filter { item ->
+        val allAgendaItems = allItems.filter { item ->
             !item.isHeading && (!item.isPlainText || item.isBullet)
         }
-        val hasAgenda = agendaItems.isNotEmpty()
+        val visibleAgendaItems = allAgendaItems.filter { item ->
+            item.isPlainText || !item.isChecked
+        }
+        val hasAgenda = visibleAgendaItems.isNotEmpty()
 
-        if (vaultManager.showTodoCount && agendaItems.any { !it.isPlainText }) {
-            val unchecked = agendaItems.count { !it.isPlainText && !it.isChecked }
-            val total = agendaItems.count { !it.isPlainText }
+        if (vaultManager.showTodoCount && allAgendaItems.any { !it.isPlainText }) {
+            val unchecked = allAgendaItems.count { !it.isPlainText && !it.isChecked }
+            val total = allAgendaItems.count { !it.isPlainText }
             views.setTextViewText(R.id.widget_todo_count, "$unchecked of $total remaining")
             views.setViewVisibility(R.id.widget_todo_count, View.VISIBLE)
         } else {
             views.setViewVisibility(R.id.widget_todo_count, View.GONE)
         }
 
-        // Reading + Bento are read directly from .obsidian/plugins/reading-year-pixels/data.json.
         val pixels = PixelDataReader.readToday(context, vaultManager.vaultUri)
         if (!pixels.bookText.isNullOrBlank()) {
             views.setTextViewText(R.id.widget_book_pixel, pixels.bookText.uppercase(Locale.getDefault()))
@@ -214,7 +216,6 @@ class ObsidianWidgetProvider : AppWidgetProvider() {
         views.setOnClickPendingIntent(R.id.widget_header, openIntent)
         views.setOnClickPendingIntent(R.id.widget_date, openIntent)
 
-        // Tapping empty widget space performs a refresh, while agenda rows remain interactive.
         views.setOnClickPendingIntent(
             R.id.widget_root,
             createActionIntent(context, ACTION_REFRESH, appWidgetId)
