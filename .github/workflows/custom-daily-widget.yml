@@ -28,6 +28,9 @@ jobs:
       - name: Apply RemoteViews safety patch
         run: python3 .github/scripts/patch_remoteviews_safe.py
 
+      - name: Match picture-2 reference layout
+        run: python3 .github/scripts/patch_exact_reference.py
+
       - name: Set up Gradle 8.13
         uses: gradle/actions/setup-gradle@v4
         with:
