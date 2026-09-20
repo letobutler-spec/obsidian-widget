@@ -51,7 +51,13 @@ object PixelDataReader {
                     labels += if (finished) "$title ✓" else title
                     if (bookColor == null) bookColor = parseColor(entry.optString("color"))
                 }
-                if (labels.isNotEmpty()) bookText = labels.take(3).joinToString("  •  ")
+                if (labels.isNotEmpty()) {
+                    bookText = when (labels.size) {
+                        1 -> labels[0]
+                        2 -> "${labels[0]}\n${labels[1]}"
+                        else -> "${labels[0]}\n${labels[1]}  +${labels.size - 2}"
+                    }
+                }
             }
 
             var bentoText: String? = null
