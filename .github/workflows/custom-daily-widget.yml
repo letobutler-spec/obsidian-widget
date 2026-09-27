@@ -34,6 +34,9 @@ jobs:
       - name: Improve multi-book Reading layout
         run: python3 .github/scripts/patch_multibook.py
 
+      - name: Fix Planner task discovery
+        run: python3 .github/scripts/patch_task_reader.py
+
       - name: Set up Gradle 8.13
         uses: gradle/actions/setup-gradle@v4
         with:
